@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>File Manager</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>File Manager</h1>
+            <div id="breadcrumb" class="bread-crumb"></div>
+        </header>
+
+        <div class="list-controls">
+            <div id="summary" class="summary"></div>
+
+            <div class="toolbar">
+                <label for="uploadInput" class="btn-primary">Upload</label>
+                <input type="file" id="uploadInput" style="display:none">
+                <input type="search" id="searchInput" class="searchInput" placeholder="Search">
+            </div>
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+    </div>
+</body>
+</html>

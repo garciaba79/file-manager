@@ -1,0 +1,270 @@
+﻿@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4.woff2) format('woff2');
+}
+
+:root {
+    --main-font: 'Roboto', sans-serif;
+    --fs-h1: 2rem;
+    --fs-header: 0.9rem;
+    --fs-body: 1rem;
+    --fs-summary: 0.85rem;
+    /*    background-color: orange !important;*/
+}
+
+body {
+    font-family: var(--main-font);
+    font-size: var(--fs-body);
+    min-width: 680px;
+}
+
+
+h1 {
+    font-size: var(--fs-h1);
+}
+
+.app {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+
+
+
+.bread-crumb {
+    display: flex;
+    align-items: center;
+    font-size: var(--fs-header);
+    color: #888;
+    /*    margin-left: 16px;*/
+    margin-bottom: 32px;
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+    color: #007bff;
+    font-weight: 500;
+}
+
+    .breadcrumb-item:hover {
+        text-decoration: underline;
+    }
+
+.separator {
+    margin: 0 4px;
+    color: #ccc;
+    user-select: none;
+}
+
+.breadcrumb-item:last-child {
+    color: #888;
+    cursor: default;
+    pointer-events: none;
+}
+
+
+
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: var(--main-font);
+    min-height: 400px; /* Adjust based on your average list size */
+    background-color: #fff;
+    transition: min-height 0.3s ease;
+    /*    background-color: yellow;*/
+}
+
+.header-row {
+    background-color: #f1f1f1;
+    font-size: var(--fs-header);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.file-row {
+    display: flex;
+    flex-wrap: wrap; /* Allows children to move to a new line */
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+    transition: background 0.2s;
+    box-sizing: border-box; /* Prevents padding from pushing the row wide */
+    color: #555;
+}
+
+
+.file-row.folder {
+    cursor: pointer;
+}
+
+.file-row.folder .col-name {
+    color: #007bff;
+}
+
+.file-row:hover {
+    background-color: #f9f9f9;
+}
+
+.col-name, .col-location, .col-date, .col-type, .col-size {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 16px; /* Better gutter spacing */
+    min-width: 0; /* The "magic" fix for flexbox overflow */
+}
+
+.col-name {
+    flex: 5;
+}
+
+.col-location {
+    flex: 5;
+    align-self:flex-end;
+    font-size: 0.85rem;
+}
+
+.col-date {
+    flex: 0 0 170px;
+}
+
+.col-type {
+    flex: 0 0 100px;
+}
+
+.col-size {
+    flex: 0 0 100px;
+}
+
+.col-action {
+    display: flex;
+    flex: 0 0 20px;
+    justify-content: center;
+}
+
+.btn-download {
+    cursor: pointer;
+    color: #555;
+    font-size: 20px;
+    transition: color 0.2s;
+    color: #007bff;
+}
+
+.btn-download:hover {
+    color: #007bff;
+}
+
+.empty {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+    transition: background 0.2s;
+    color: #999;
+}
+
+
+.list-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px 0;
+    /*    border-bottom: 2px solid #eee;*/
+}
+
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-summary);
+    padding: 0px 16px;
+    color: #555;
+}
+
+.summary span:not(:last-child) {
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #ccc;
+    padding-right: 8px;
+    height: 1.2rem;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+}
+
+.searchInput {
+    height: 34.4px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    user-select: none; /* Prevents text highlighting on double click */
+    border: 1px solid transparent;
+}
+
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+.btn-primary:active {
+    background-color: #004085;
+    transform: translateY(1px); /* Slight "press" effect */
+}
+
+.btn-primary.disabled {
+    background-color: #ccc !important;
+    cursor: not-allowed;
+    pointer-events: none; /* Prevents the label from triggering the hidden input */
+    opacity: 0.7;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Ensure the search input matches the height of the button */
+.searchInput {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+.searchInput:focus {
+    border-color: #007bff;
+}
