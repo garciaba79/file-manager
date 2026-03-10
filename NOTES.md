@@ -33,6 +33,7 @@
 - [Test API](https://localhost:7146/api/files/list)
 - [Test API with path](https://localhost:7146/api/files/list?path=pictures/other)
 - [Test API with search](https://localhost:7146/api/files/list?search=don)
+- [Test API with invalid path](https://localhost:7146/api/files/list?path=../)
 
 ## Todo
 
@@ -122,8 +123,30 @@
 - [x] final app testing
 
 
-## Known issues
+## Known Issues & Security Considerations
 - The server has a max size of about 28.6 megabytes, I can set the server to download larger files, but I won't for this project
+
+* **Upload Limits**: Server-side file size is currently capped at **~28.6 MB** (default `maxAllowedContentLength`).
+* **Network Limits**: The app does not currently handle **Request-URI Too Long** errors which can occur with excessively long search strings.
+* **Search Hardening**: Currently uses `SearchOption.AllDirectories`.
+* *Risk:* Potential **Denial of Service (DoS)** via resource exhaustion if searching very deep/large directory structures.
+* *Mitigation:* Implement search timeouts and depth limits.
+
+* **File Upload Security**: No validation is currently performed on uploaded binaries.
+* *Production Mitigations:* Disable execution permissions on the storage folder, implement **MIME type** validation, and use file extension **whitelisting** (e.g., .jpg, .pdf).
+* *Metadata*: Scan for "Metadata Bombs" (files that look small but expand to consume massive memory during processing).
+
+* **XSS Prevention**: The UI currently renders file and folder names directly into the DOM using `innerHTML`.
+* *Risk:* **Cross-Site Scripting (XSS)** if a file is named with malicious `<script>` tags.
+* *Fix:* Switch to `.textContent` or implement HTML encoding for all user-provided strings.
+* Normally I would use a framework like React, Vue, AngularJS that escapes strings by default, or I would have used document.createTextNode
+* For this 20-hour vanilla JS prototype, I prioritized core functionality and path security, which I consider the highest risk.
+
+* **Access Control**: The app lacks **Authentication and Authorization**.
+* *Production Requirement:* Implement a login system with **Role-Based Access Control (RBAC)** to ensure users can only see their designated "Jail" folders.
+
+* **Performance**: The app loads full directory listings at once.
+* *Production Requirement:* Implement **Pagination** or **Virtual Scrolling** for folders containing thousands of items to reduce memory pressure on the browser.
 
 ## Tests
 

@@ -28,6 +28,7 @@ A proof-of-concept file browser application that demonstrates a secure, configur
 - [Test API](https://localhost:7146/api/files/list)
 - [Test API with path](https://localhost:7146/api/files/list?path=pictures/other)
 - [Test API with search](https://localhost:7146/api/files/list?search=don)
+- [Test API with invalid path](https://localhost:7146/api/files/list?path=../)
 
 ## Notes
 - Upload size limited by default Kestrel (~28 MB) — can be increased in Program.cs

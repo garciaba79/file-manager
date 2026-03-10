@@ -26,7 +26,7 @@ const getDate = (lastModified) => {
             hour: 'numeric',                // 01
             minute: '2-digit',              // 45
             hour12: true                    // AM/PM
-        });
+        });                                 // 3/8/2026, 11:07 PM
 
     return formattedDate
 };
@@ -92,12 +92,24 @@ const setUploadButton = (isSearchMode) => {
     }
 }
 
+// sanitizes a string for safe insertion into the DOM
+// replaces sensitive HTML characters to prevent Cross Site Scripting (XSS)
+const escapeHTML = (str) => {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[m]);
+};
+
 const initApp = () => {
     const params = new URLSearchParams(window.location.search);
     const urlPath = params.get('path') || '';
     const urlSearch = params.get('search') || null;
 
-    // FIX
     // Attach the initial URL data to the current history state
     // This ensures that when the user comes back to the start page the e.state isn't null
     history.replaceState({ path: urlPath, searchText: urlSearch }, '', window.location.href);
@@ -115,6 +127,8 @@ const uploadFile = async (file, path) => {
 
     try {
 
+        // the browser will wrap the file and path into a form data object
+        // then this will post to the API with a multipart form-data body
         const formData = new FormData();
         formData.append('file', file);
 
@@ -246,14 +260,17 @@ const drawList = (data) => {
         const fullFileName = getFullFileName(item);
 
         const downloadBtn = !isFolder
-            ? `<span class="material-icons btn-download" data-name="${fullFileName}">file_download</span>`
+            ? `<span class="material-icons btn-download" data-name="${escapeHTML(fullFileName) }">file_download</span>`
             : '';
+
+        const safeName = escapeHTML(item.name);
+        const safePath = escapeHTML(item.path);
 
         const row = `
             <div class="${rowClass}"
-                    data-name="${item.name}" 
+                    data-name="${safeName}" 
                     data-type="${item.type}"
-                    data-path="${item.path}">
+                    data-path="${safePath}">
                 <div class="col-name">${item.name}</div>
                 ${state.isSearchMode ? `<div class="col-location">${item.path}</div>` : ''}
                 <div class="col-date">${date}</div>
@@ -272,7 +289,7 @@ const drawList = (data) => {
     const noItemsHtml = [headerHtml, noItemsRow].join('');
     const listHtml = hasItems ? listHtl : noItemsHtml;
 
-    container.innerHTML = listHtml;
+    container.innerHTML = listHtml;                                                     // security risk, see NOTES.md
 
     return listHtml;
 };
@@ -292,7 +309,7 @@ const drawSummary = (data) => {
         ${totalSizeHtml}
     `;
 
-    container.innerHTML = !hasNoSummary ? summaryHtml : '';
+    container.innerHTML = !hasNoSummary ? summaryHtml : '';                             // security risk, see NOTES.md
 
     return summaryHtml;
 };
@@ -310,15 +327,17 @@ const drawBreadcrumb = (path) => {
     // create breadcrumb items for each part of the path
     parts.forEach((part, index) => {
         breadCrumb += index === 0 ? part : `/${part}`;
+        const safePart = escapeHTML(part);                                              // escape for the HTML display
+        const safeJSPath = breadCrumb.replace(/'/g, "\\'");                             // escape for the JS string, preventing quote breakouts
         breadcrumbHtml += `
             <span class="separator">${seperatorName}</span>
-            <span class="breadcrumb-item" onclick="loadData('${breadCrumb}')">
-                ${part}
+            <span class="breadcrumb-item" onclick="loadData('${safeJSPath}')">
+                ${safePart}
             </span>
         `;                                                                              // WARNING, the hard coded function name can change and cause a bug
     });
 
-    container.innerHTML = breadcrumbHtml;
+    container.innerHTML = breadcrumbHtml;                                               // security risk, see NOTES.md
 
     return breadcrumbHtml;
 };

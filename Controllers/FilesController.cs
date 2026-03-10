@@ -52,21 +52,16 @@ namespace TestProject.Controllers {
         {
             try
             {
-                var safePath = Path.GetFullPath(Path.Combine(_rootPath, path ?? ""));
-                var rootPath = Path.GetFullPath(_rootPath);
+                var safePath = Path.GetFullPath(Path.Combine(_rootPath, path ?? ""));   // this normalizes the path and prevents directory traversal, it will throw if the path is invalid
+                var rootPath = Path.GetFullPath(_rootPath);                             // this is the normalized root path for comparison
 
-                _logger.LogInformation("List _rootPath: {_rootPath}", _rootPath);
-                _logger.LogInformation("List path: {path}", path);
-                _logger.LogInformation("List safePath: {safePath}", safePath);
-                _logger.LogInformation("List rootFull: {rootFull}", rootPath);
-
-                if (!safePath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase))
+                if (!safePath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase)) // this checks if the safePath is still within the root directory, preventing directory traversal attacks
                     return BadRequest("Invalid path");
 
                 FolderItem result;
                 if (!string.IsNullOrWhiteSpace(search))
                 {
-                    result = PerformSearch(safePath, rootPath, search);
+                    result = PerformSearch(safePath, rootPath, path, search);
                 }
                 else
                 {
@@ -90,14 +85,14 @@ namespace TestProject.Controllers {
             {
                 if (file == null || file.Length == 0) return BadRequest("No file selected.");
 
-
                 var safeFolder = Path.GetFullPath(Path.Combine(_rootPath, path ?? ""));
                 var fullPath = Path.GetFullPath(_rootPath);
 
                 if (!safeFolder.StartsWith(fullPath, StringComparison.OrdinalIgnoreCase))
                     return BadRequest("Invalid path.");
 
-                var fullFilePath = Path.Combine(safeFolder, file.FileName);             // combine folder path with the original filename
+                var safeFileName = Path.GetFileName(file.FileName);                     // make sure the file name is safe
+                var fullFilePath = Path.Combine(safeFolder, safeFileName);              // combine folder path with the original filename
 
                 // this will check if the file exists and provide a graceful message
                 // this can be handled numerous ways, rename options in UI, rename on server
@@ -132,13 +127,18 @@ namespace TestProject.Controllers {
                 if (!safePath.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
                     return BadRequest("Invalid path");
 
+                // this will check if the file exists and provide a graceful message
                 if (!System.IO.File.Exists(safePath))
                     return NotFound("File not found");
 
                 var fileBytes = System.IO.File.ReadAllBytes(safePath);
                 var fileName = Path.GetFileName(safePath);
 
-                return File(fileBytes, "application/octet-stream", fileName);           // "application/octet-stream" forces a download dialog in the browser
+                // This is a generic binary stream content type that tells the browser to download the file rather than trying to display it
+                // "application/octet-stream" forces a download dialog in the browser
+                FileContentResult fileContentResult = File(fileBytes, "application/octet-stream", fileName);
+
+                return fileContentResult;
             }
             catch (Exception ex)
             {
@@ -185,9 +185,9 @@ namespace TestProject.Controllers {
 
         private FolderItem GetDirectoryListing(string safePath, string rootPath, string path)
         {
-            DirectoryInfo folderInfo = new DirectoryInfo(safePath);
+            DirectoryInfo folderInfo = new DirectoryInfo(safePath);                     // get the directory info for the requested path
 
-            List<FileItem> files = folderInfo.GetFileSystemInfos()
+            List<FileItem> files = folderInfo.GetFileSystemInfos()                      // get all files and directories in the requested path
                 .Select(info => new FileItem
                 {
                     Name = info is FileInfo nameInfo ? Path.GetFileNameWithoutExtension(nameInfo.Name) : info.Name,
@@ -197,7 +197,7 @@ namespace TestProject.Controllers {
                     Extension = info is FileInfo extensionInfo ? extensionInfo.Extension.TrimStart('.').ToLower() : null,
                     Path = Path.GetRelativePath(rootPath, info.FullName).Replace('\\', '/')
                 })
-                .OrderBy(i => i.Type == "directory" ? 0 : 1)
+                .OrderBy(i => i.Type == "directory" ? 0 : 1)                            // order directories first, then files
                 .ThenBy(i => i.Name)
                 .ToList();
 
@@ -213,11 +213,14 @@ namespace TestProject.Controllers {
             return folderItem;
         }
 
-        private FolderItem PerformSearch(string searchRoot, string rootPath, string searchText)
+        private FolderItem PerformSearch(string safePath, string rootPath, string path, string searchText)
         {
             var query = $"*{searchText}*";                                              // the search pattern is *term* (it's case insensitive by default on Windows)
 
-            var searchResults = new DirectoryInfo(searchRoot)
+            // this will search all subdirectories for files and folders matching the search pattern
+            // it returns a flat list of results with their relative paths for context
+            // this allows for a simple search experience without needing to navigate through folders first
+            List<FileItem> searchResults = new DirectoryInfo(safePath)
                 .EnumerateFileSystemInfos(query, SearchOption.AllDirectories)
                 .Select(info => new FileItem
                 {
@@ -228,19 +231,20 @@ namespace TestProject.Controllers {
                     Extension = info is FileInfo extensionInfo ? extensionInfo.Extension.TrimStart('.').ToLower() : null,
                     Path = Path.GetRelativePath(rootPath, info.FullName).Replace('\\', '/')
                 })
-                .OrderBy(i => i.Type == "directory" ? 0 : 1)
+                .OrderBy(i => i.Type == "directory" ? 0 : 1)                            // order directories first, then files
                 .ThenBy(i => i.Name)
                 .ToList();
 
-            return new FolderItem
-            {
-                CurrentPath = Path.GetRelativePath(rootPath, searchRoot).Replace('\\', '/'),
+            FolderItem folderItem = new FolderItem {
+                CurrentPath = Path.GetRelativePath(rootPath, safePath).Replace('\\', '/'),
+                ParentPath = string.IsNullOrEmpty(path) ? null : Path.GetDirectoryName(path)?.Replace('\\', '/'),
                 Items = searchResults,
                 FileCount = searchResults.Count(i => i.Type == "file"),
                 FolderCount = searchResults.Count(i => i.Type == "directory"),
                 TotalSizeBytes = searchResults.Where(i => i.Size.HasValue).Sum(i => i.Size ?? 0L)
-                // ParentPath is null and handled differently in search mode
             };
+
+            return folderItem;
         }
 
 
